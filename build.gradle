@@ -1,0 +1,54 @@
+plugins {
+    id 'com.github.hierynomus.license' version '0.11.0'
+}
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'license'
+
+    version = '1.0-SNAPSHOT'
+
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+
+    repositories {
+        mavenCentral()
+    }
+
+    // License header formatting
+    license {
+        header rootProject.file('LICENSE')
+        exclude '*.txt'
+        exclude '*.xml'
+        exclude '*.json'
+        ignoreFailures false
+        strictCheck true
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += ['-Xlint:all', '-Xlint:-deprecation']
+        options.encoding = 'UTF-8'
+    }
+}
+
+subprojects {
+    dependencies {
+        compile rootProject
+    }
+}
+
+dependencies {
+    compile 'com.google.guava:guava:17.0'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'org.apache.commons:commons-lang3:3.3.2'
+
+    compile 'org.ow2.asm:asm-debug-all:5.0.3'
+    runtime 'org.ow2.asm:asm-all:5.0.3'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
