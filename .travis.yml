@@ -4,3 +4,10 @@ jdk:
   - oraclejdk8
 notifications:
   email: false
+env:
+  global:
+    - LAPIS_DEPLOY=https://github.com/LapisBlue/Deploy.git DEPLOY_ROOT=/tmp/lapis/deploy
+    - GIT_REPO=git@github.com:Minecrell/Repo.git
+    - secure: "CL8j0ChockYJVWGzzqrHOnht31xwXezgFC5kwvcSQSpUQ5IuVUX1Rt6FawCcdcrA/FbH35UYXYPmWgahmjynIo0JO4fJ6SmQQ3jbFlZL0txxekDqiDJr9YZgMMfLscJ1RVBSVJIq/aFKTwmVG8XjMQib34n5yR2lXb/aVfO4L2Q="
+after_success:
+  - git clone $LAPIS_DEPLOY $DEPLOY_ROOT && $DEPLOY_ROOT/maven_repo "gradle publish" oraclejdk8

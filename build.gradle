@@ -5,7 +5,9 @@ plugins {
 allprojects {
     apply plugin: 'java'
     apply plugin: 'license'
+    apply plugin: 'maven-publish'
 
+    group = 'net.minecrell.quartz'
     version = '1.0-SNAPSHOT'
 
     sourceCompatibility = '1.8'
@@ -13,6 +15,11 @@ allprojects {
 
     repositories {
         mavenCentral()
+    }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += ['-Xlint:all', '-Xlint:-deprecation']
+        options.encoding = 'UTF-8'
     }
 
     // License header formatting
@@ -29,9 +36,31 @@ allprojects {
         }
     }
 
-    tasks.withType(JavaCompile) {
-        options.compilerArgs += ['-Xlint:all', '-Xlint:-deprecation']
-        options.encoding = 'UTF-8'
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+
+                artifact sourcesJar
+
+                if (project == rootProject) {
+                    artifactId = 'mappings'
+                } else {
+                    artifactId = "mappings-$project.name"
+                }
+
+                repositories {
+                    maven {
+                        url = System.getenv('REPO_' + (version.endsWith('-SNAPSHOT') ? 'SNAPSHOTS' : 'RELEASES')) ?: "$buildDir/repo"
+                    }
+                }
+            }
+        }
     }
 }
 
