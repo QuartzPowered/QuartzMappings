@@ -61,7 +61,7 @@ public class SimpleTransformerContext implements TransformerContext {
     }
 
     @Override
-    public byte[] getTransformed(ClassReader reader) {
+    public ClassReader getTransformed(ClassReader reader) {
         if (reader == null) {
             return null;
         }
@@ -69,18 +69,13 @@ public class SimpleTransformerContext implements TransformerContext {
         String name = reader.getClassName();
         String transformedName = this.renamer.unmap(name);
 
-        byte[] bytes = null;
         for (ClassTransformer transformer : this.transformers) {
             if (transformer.transform(name, transformedName)) {
-                if (bytes != null) {
-                    reader = new ClassReader(bytes);
-                }
-
-                bytes = transformer.transform(name, transformedName, reader);
+                reader = new ClassReader(transformer.transform(name, transformedName, reader));
             }
         }
 
-        return bytes != null ? bytes : reader.b;
+        return reader;
     }
 
 }

@@ -24,6 +24,7 @@ package net.minecrell.quartz.mappings.transformer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
+import net.minecrell.quartz.mappings.mapper.Mapper;
 import net.minecrell.quartz.mappings.transformer.context.SimpleTransformerContext;
 import net.minecrell.quartz.mappings.transformer.context.TransformerContext;
 import net.minecrell.quartz.mappings.transformer.provider.ClassProvider;
@@ -40,36 +41,46 @@ public final class MappingsTransformer {
 
     private MappingsTransformer() {}
 
+    public static TransformerContext createContext(ClassProvider provider, ClassRenamer renamer, ClassTransformer... transformers) {
+        return new SimpleTransformerContext(provider, renamer, ImmutableList.copyOf(transformers));
+    }
+
     public static ClassProvider getProvider(ZipFile zip) {
         return new ZipClassProvider(zip);
     }
 
     public static TransformerContext createContext(ZipFile zip, ClassRenamer renamer, ClassTransformer... transformers) {
-        return new SimpleTransformerContext(getProvider(zip), renamer, ImmutableList.copyOf(transformers));
+        return createContext(getProvider(zip), renamer, transformers);
     }
 
-    public static void transform(ZipFile zip, ZipOutputStream out, ClassRenamer renamer, ClassTransformer... transformers) throws IOException {
-        TransformerContext context = createContext(zip, renamer, transformers);
+    public static void transform(ZipFile zip, ZipOutputStream out, TransformerContext context) throws IOException {
         ZipClassProvider provider = (ZipClassProvider) context.getClassProvider();
 
         Enumeration<? extends ZipEntry> entries = zip.entries();
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
-            ZipEntry entryOut = new ZipEntry(entry);
 
             if (entry.isDirectory() || !entry.getName().endsWith(".class")) {
-                out.putNextEntry(entryOut);
+                out.putNextEntry(new ZipEntry(entry));
                 ByteStreams.copy(zip.getInputStream(entry), out);
                 continue;
             }
 
             ClassReader reader = provider.getClassFile(entry);
-            byte[] transformed = context.getTransformed(reader);
-            entryOut.setSize(transformed.length);
+            reader = context.getTransformed(reader);
+
+            ZipEntry entryOut = new ZipEntry(reader.getClassName() + ".class");
+            entryOut.setSize(reader.b.length);
             entryOut.setCompressedSize(-1);
             out.putNextEntry(entryOut);
-            out.write(transformed);
+            out.write(reader.b);
         }
+    }
+
+    public static void deobfuscate(ZipFile zip, ZipOutputStream out, Mapper mapper) throws IOException {
+        ClassProvider provider = getProvider(zip);
+        DeobfuscationTransformer transformer = new DeobfuscationTransformer(mapper, provider);
+        transform(zip, out, createContext(provider, transformer, transformer));
     }
 
 }

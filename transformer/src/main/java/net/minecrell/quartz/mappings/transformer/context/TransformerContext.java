@@ -38,7 +38,7 @@ public interface TransformerContext {
 
     List<ClassTransformer> getTransformers();
 
-    default byte[] getTransformed(String name) throws IOException {
+    default ClassReader getTransformed(String name) throws IOException {
         if (name == null) {
             return null;
         }
@@ -46,14 +46,14 @@ public interface TransformerContext {
         return getTransformed(getClassProvider().getClass(name));
     }
 
-    default byte[] getTransformed(byte[] classBytes) {
+    default ClassReader getTransformed(byte[] classBytes) {
         if (classBytes == null) {
             return null;
         }
         return getTransformed(new ClassReader(classBytes));
     }
 
-    byte[] getTransformed(ClassReader reader);
+    ClassReader getTransformed(ClassReader reader);
 
 
 }
