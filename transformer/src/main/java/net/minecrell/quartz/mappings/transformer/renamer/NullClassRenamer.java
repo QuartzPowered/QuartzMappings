@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package net.minecrell.quartz.mappings.transformer;
+package net.minecrell.quartz.mappings.transformer.renamer;
 
 public final class NullClassRenamer implements ClassRenamer {
 

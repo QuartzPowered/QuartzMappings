@@ -20,12 +20,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package net.minecrell.quartz.mappings.transformer;
+package net.minecrell.quartz.mappings.transformer.transform;
 
-public interface ClassRenamer {
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 
-    String map(String className);
+public interface CoreClassTransformer extends ClassTransformer {
 
-    String unmap(String className);
+    ClassVisitor transform(String name, String transformedName, ClassReader reader, ClassVisitor visitor);
 
 }

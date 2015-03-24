@@ -25,24 +25,33 @@ package net.minecrell.quartz.mappings.transformer.context;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.ImmutableList;
-import net.minecrell.quartz.mappings.transformer.ClassRenamer;
-import net.minecrell.quartz.mappings.transformer.ClassTransformer;
-import net.minecrell.quartz.mappings.transformer.NullClassRenamer;
 import net.minecrell.quartz.mappings.transformer.provider.ClassProvider;
+import net.minecrell.quartz.mappings.transformer.renamer.ClassRenamer;
+import net.minecrell.quartz.mappings.transformer.renamer.NullClassRenamer;
+import net.minecrell.quartz.mappings.transformer.transform.CoreClassTransformer;
+import net.minecrell.quartz.mappings.transformer.transform.TreeClassTransformer;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.ClassNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleTransformerContext implements TransformerContext {
 
     private final ClassProvider classProvider;
     private final ClassRenamer renamer;
-    private final ImmutableList<ClassTransformer> transformers;
 
-    public SimpleTransformerContext(ClassProvider classProvider, ClassRenamer renamer, ImmutableList<ClassTransformer> transformers) {
+    private final ImmutableList<CoreClassTransformer> coreTransformers;
+    private final ImmutableList<TreeClassTransformer> treeTransformers;
+
+    public SimpleTransformerContext(ClassProvider classProvider, ClassRenamer renamer, ImmutableList<CoreClassTransformer> coreTransformers,
+            ImmutableList<TreeClassTransformer> treeTransformers) {
         this.classProvider = requireNonNull(classProvider, "classProvider");
         this.renamer = renamer != null ? renamer : NullClassRenamer.getInstance();
-        this.transformers = requireNonNull(transformers, "transformers");
+        this.coreTransformers = requireNonNull(coreTransformers, "coreTransformers");
+        this.treeTransformers = requireNonNull(treeTransformers, "treeTransformers");
     }
 
     @Override
@@ -56,8 +65,13 @@ public class SimpleTransformerContext implements TransformerContext {
     }
 
     @Override
-    public List<ClassTransformer> getTransformers() {
-        return this.transformers;
+    public List<CoreClassTransformer> getCoreTransformers() {
+        return this.coreTransformers;
+    }
+
+    @Override
+    public List<TreeClassTransformer> getTreeTransformers() {
+        return this.treeTransformers;
     }
 
     @Override
@@ -69,13 +83,55 @@ public class SimpleTransformerContext implements TransformerContext {
         String name = reader.getClassName();
         String transformedName = this.renamer.unmap(name);
 
-        for (ClassTransformer transformer : this.transformers) {
+        List<CoreClassTransformer> coreTransformers = new ArrayList<>(this.coreTransformers.size());
+
+        int readerFlags = 0;
+        int writerFlags = 0;
+
+        for (CoreClassTransformer transformer : this.coreTransformers) {
             if (transformer.transform(name, transformedName)) {
-                reader = new ClassReader(transformer.transform(name, transformedName, reader));
+                readerFlags |= transformer.readerFlags();
+                writerFlags |= transformer.writerFlags();
+                coreTransformers.add(transformer);
             }
         }
 
-        return reader;
+        List<TreeClassTransformer> treeTransformers = new ArrayList<>(this.treeTransformers.size());
+
+        for (TreeClassTransformer transformer : this.treeTransformers) {
+            if (transformer.transform(name, transformedName)) {
+                readerFlags |= transformer.readerFlags();
+                writerFlags |= transformer.writerFlags();
+                treeTransformers.add(transformer);
+            }
+        }
+
+        ClassWriter writer = new ClassWriter(writerFlags);
+        ClassVisitor visitor;
+        ClassNode classNode = null;
+
+        if (!treeTransformers.isEmpty()) {
+            classNode = new ClassNode();
+            visitor = classNode;
+        } else {
+            visitor = writer;
+        }
+
+        for (CoreClassTransformer transformer : coreTransformers) {
+            visitor = transformer.transform(name, transformedName, reader, visitor);
+        }
+
+        reader.accept(visitor, readerFlags);
+
+        if (!treeTransformers.isEmpty()) {
+            for (TreeClassTransformer transformer : treeTransformers) {
+                classNode = transformer.transform(name, transformedName, classNode);
+            }
+
+            classNode.accept(writer);
+        }
+
+        return new ClassReader(writer.toByteArray());
     }
 
 }

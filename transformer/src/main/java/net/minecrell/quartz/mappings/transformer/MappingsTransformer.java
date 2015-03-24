@@ -29,6 +29,10 @@ import net.minecrell.quartz.mappings.transformer.context.SimpleTransformerContex
 import net.minecrell.quartz.mappings.transformer.context.TransformerContext;
 import net.minecrell.quartz.mappings.transformer.provider.ClassProvider;
 import net.minecrell.quartz.mappings.transformer.provider.ZipClassProvider;
+import net.minecrell.quartz.mappings.transformer.renamer.ClassRenamer;
+import net.minecrell.quartz.mappings.transformer.transform.ClassTransformer;
+import net.minecrell.quartz.mappings.transformer.transform.CoreClassTransformer;
+import net.minecrell.quartz.mappings.transformer.transform.TreeClassTransformer;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -42,14 +46,27 @@ public final class MappingsTransformer {
     private MappingsTransformer() {}
 
     public static TransformerContext createContext(ClassProvider provider, ClassRenamer renamer, ClassTransformer... transformers) {
-        return new SimpleTransformerContext(provider, renamer, ImmutableList.copyOf(transformers));
+        ImmutableList.Builder<CoreClassTransformer> coreTransformers = ImmutableList.builder();
+        ImmutableList.Builder<TreeClassTransformer> treeTransformers = ImmutableList.builder();
+
+        for (ClassTransformer transformer : transformers) {
+            if (transformer instanceof CoreClassTransformer) {
+                coreTransformers.add((CoreClassTransformer) transformer);
+            } else if (transformer instanceof TreeClassTransformer) {
+                treeTransformers.add((TreeClassTransformer) transformer);
+            } else {
+                throw new IllegalArgumentException("Unsupported transformer type: " + transformer.getClass());
+            }
+        }
+
+        return new SimpleTransformerContext(provider, renamer, coreTransformers.build(), treeTransformers.build());
     }
 
     public static ClassProvider getProvider(ZipFile zip) {
         return new ZipClassProvider(zip);
     }
 
-    public static TransformerContext createContext(ZipFile zip, ClassRenamer renamer, ClassTransformer... transformers) {
+    public static TransformerContext createContext(ZipFile zip, ClassRenamer renamer, CoreClassTransformer... transformers) {
         return createContext(getProvider(zip), renamer, transformers);
     }
 

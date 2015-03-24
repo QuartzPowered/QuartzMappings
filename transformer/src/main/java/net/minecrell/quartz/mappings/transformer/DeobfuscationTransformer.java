@@ -23,6 +23,7 @@
 package net.minecrell.quartz.mappings.transformer;
 
 import static java.util.Objects.requireNonNull;
+import static org.objectweb.asm.ClassReader.EXPAND_FRAMES;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -30,10 +31,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import net.minecrell.quartz.mappings.mapper.Mapper;
 import net.minecrell.quartz.mappings.transformer.provider.ClassProvider;
+import net.minecrell.quartz.mappings.transformer.renamer.ClassRenamer;
+import net.minecrell.quartz.mappings.transformer.transform.CoreClassTransformer;
 import org.apache.commons.lang3.ArrayUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.RemappingClassAdapter;
 
@@ -43,7 +45,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DeobfuscationTransformer extends Remapper implements ClassTransformer, ClassRenamer {
+public class DeobfuscationTransformer extends Remapper implements CoreClassTransformer, ClassRenamer {
 
     private final Mapper mapper;
     private final ClassProvider provider;
@@ -181,10 +183,13 @@ public class DeobfuscationTransformer extends Remapper implements ClassTransform
     }
 
     @Override
-    public byte[] transform(String name, String transformedName, ClassReader reader) {
-        ClassWriter writer = new ClassWriter(0);
-        reader.accept(new RemappingAdapter(writer), ClassReader.EXPAND_FRAMES);
-        return writer.toByteArray();
+    public int readerFlags() {
+        return EXPAND_FRAMES;
+    }
+
+    @Override
+    public ClassVisitor transform(String name, String transformedName, ClassReader reader, ClassVisitor visitor) {
+        return new RemappingAdapter(visitor);
     }
 
     private class RemappingAdapter extends RemappingClassAdapter {

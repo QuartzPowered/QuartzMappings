@@ -20,43 +20,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package net.minecrell.quartz.mappings.transformer.context;
+package net.minecrell.quartz.mappings.transformer.transform;
 
-import net.minecrell.quartz.mappings.transformer.provider.ClassProvider;
-import net.minecrell.quartz.mappings.transformer.renamer.ClassRenamer;
-import net.minecrell.quartz.mappings.transformer.transform.CoreClassTransformer;
-import net.minecrell.quartz.mappings.transformer.transform.TreeClassTransformer;
-import org.objectweb.asm.ClassReader;
+public interface ClassTransformer {
 
-import java.io.IOException;
-import java.util.List;
-
-public interface TransformerContext {
-
-    ClassProvider getClassProvider();
-
-    ClassRenamer getRenamer();
-
-    List<CoreClassTransformer> getCoreTransformers();
-
-    List<TreeClassTransformer> getTreeTransformers();
-
-    default ClassReader getTransformed(String name) throws IOException {
-        if (name == null) {
-            return null;
-        }
-
-        return getTransformed(getClassProvider().getClass(name));
+    default boolean transform(String name, String transformedName) {
+        return true;
     }
 
-    default ClassReader getTransformed(byte[] classBytes) {
-        if (classBytes == null) {
-            return null;
-        }
-        return getTransformed(new ClassReader(classBytes));
+    default int readerFlags() {
+        return 0;
     }
 
-    ClassReader getTransformed(ClassReader reader);
-
+    default int writerFlags() {
+        return 0;
+    }
 
 }
