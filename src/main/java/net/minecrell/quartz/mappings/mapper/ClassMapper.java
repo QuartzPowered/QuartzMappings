@@ -98,12 +98,12 @@ public class ClassMapper {
         }
 
         ClassMapper that = (ClassMapper) o;
-        return classes.equals(that.classes);
+        return this.classes.equals(that.classes);
     }
 
     @Override
     public int hashCode() {
-        return classes.hashCode();
+        return this.classes.hashCode();
     }
 
     @Override

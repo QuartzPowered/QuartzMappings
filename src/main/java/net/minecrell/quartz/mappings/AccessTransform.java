@@ -46,7 +46,7 @@ public class AccessTransform {
 
     public int transform(int access) {
         access = this.access.transform(access);
-        if (removeFinal) {
+        if (this.removeFinal) {
             access = AccessModifier.removeFinal(access);
         }
 

@@ -106,7 +106,7 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
         }
 
         try {
-            FileObject file = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", "mappings.json");
+            FileObject file = this.processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", "mappings.json");
 
             Map<String, MappedClass> mappings;
             try (Reader reader = file.openReader(false)) {
@@ -133,13 +133,13 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
                     Constructor constructor = element.getAnnotation(Constructor.class);
                     if (constructor != null) {
                         if (element.getKind() != ElementKind.METHOD) {
-                            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "@Constructor can be only used for methods", element);
+                            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "@Constructor can be only used for methods", element);
                             continue;
                         }
 
                         String name = element.getSimpleName().toString();
                         if (!name.equals("create")) {
-                            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Constructor methods should be called \"create\"",
+                            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Constructor methods should be called \"create\"",
                                     element);
                             continue;
                         }
@@ -147,7 +147,7 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
                         ExecutableElement creator = (ExecutableElement) element;
 
                         if (!mappingClass.asType().equals(creator.getReturnType())) {
-                            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Constructor method should return instance of itself",
+                            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Constructor method should return instance of itself",
                                     element);
                             continue;
                         }
@@ -197,14 +197,14 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
             }
 
             // Generate JSON output
-            file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "mappings.json");
+            file = this.processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "mappings.json");
             try (Writer writer = file.openWriter()) {
                 Mappings.write(writer, mappings);
             }
 
             return true;
         } catch (IOException e) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ExceptionUtils.getStackTrace(e));
+            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ExceptionUtils.getStackTrace(e));
             throw new RuntimeException("Failed to create mappings.json", e);
         }
     }

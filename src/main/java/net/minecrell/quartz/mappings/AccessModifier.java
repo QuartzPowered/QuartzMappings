@@ -42,11 +42,11 @@ public enum AccessModifier {
     }
 
     public int getModifier() {
-        return modifier;
+        return this.modifier;
     }
 
     public boolean is(int access) {
-        return (access & modifier) != 0;
+        return (access & this.modifier) != 0;
     }
 
     public int transform(int access) {
@@ -55,7 +55,7 @@ public enum AccessModifier {
             // Don't lower access
             if (current.compareTo(this) < 0) {
                 access &= ~current.modifier;
-                access |= modifier;
+                access |= this.modifier;
             }
         }
 

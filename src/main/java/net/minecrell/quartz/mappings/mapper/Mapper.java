@@ -51,19 +51,19 @@ public class Mapper extends ClassMapper {
     }
 
     public ImmutableTable<String, String, String> getMethods() {
-        return methods;
+        return this.methods;
     }
 
     public ImmutableTable<String, String, String> getFields() {
-        return fields;
+        return this.fields;
     }
 
     public ImmutableMultimap<String, MethodNode> getConstructors() {
-        return constructors;
+        return this.constructors;
     }
 
     public ImmutableTable<String, String, AccessTransform> getAccessTransforms() {
-        return accessTransforms;
+        return this.accessTransforms;
     }
 
     @Override
