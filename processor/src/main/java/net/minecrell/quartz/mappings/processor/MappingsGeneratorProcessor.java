@@ -28,7 +28,6 @@ import static net.minecrell.quartz.mappings.processor.util.Elements.getInternalN
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableBiMap;
-import net.minecrell.quartz.mappings.AccessModifier;
 import net.minecrell.quartz.mappings.AccessTransform;
 import net.minecrell.quartz.mappings.Accessible;
 import net.minecrell.quartz.mappings.MappedClass;
@@ -57,7 +56,6 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
@@ -123,7 +121,7 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
 
                 Accessible accessible = mappingClass.getAnnotation(Accessible.class);
                 if (accessible != null) {
-                    mapping.getAccess().put("", readAccess(mappingClass));
+                    mapping.getAccess().put("", parseAccessible(accessible));
                 }
 
                 for (Element element : mappingClass.getEnclosedElements()) {
@@ -145,7 +143,7 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
                             mapping.getMethods().put(mappedName + unmapper.mapMethodDesc(methodDesc), methodName);
 
                             if (accessible != null) {
-                                mapping.getAccess().put(methodName + methodDesc, readAccess(method));
+                                mapping.getAccess().put(methodName + methodDesc, parseAccessible(accessible));
                             }
 
                             break;
@@ -156,7 +154,7 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
                             mapping.getFields().put(mappedName + ':' + unmapper.mapDesc(getDescriptor(field)), fieldName);
 
                             if (accessible != null) {
-                                mapping.getAccess().put(fieldName, readAccess(field));
+                                mapping.getAccess().put(fieldName, parseAccessible(accessible));
                             }
 
                             break;
@@ -193,23 +191,8 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
         return new ClassMapper(classes.build());
     }
 
-    private static AccessTransform readAccess(Element element) {
-        Set<Modifier> modifiers = element.getModifiers();
-        boolean removeFinal = !modifiers.contains(Modifier.FINAL);
-
-        for (Modifier modifier : element.getModifiers()) {
-            switch (modifier) {
-                case PUBLIC:
-                    return new AccessTransform(AccessModifier.PUBLIC, removeFinal);
-                case PROTECTED:
-                    return new AccessTransform(AccessModifier.PROTECTED, removeFinal);
-                case PRIVATE:
-                    return new AccessTransform(AccessModifier.PRIVATE, removeFinal);
-                default:
-            }
-        }
-
-        return new AccessTransform(AccessModifier.PACKAGE_LOCAL, removeFinal);
+    private static AccessTransform parseAccessible(Accessible accessible) {
+        return new AccessTransform(accessible.access(), accessible.removeFinal());
     }
 
 }
