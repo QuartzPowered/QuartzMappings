@@ -21,6 +21,7 @@ allprojects {
         exclude '*.txt'
         exclude '*.xml'
         exclude '*.json'
+        exclude 'META-INF/**'
         ignoreFailures false
         strictCheck true
         mapping {
