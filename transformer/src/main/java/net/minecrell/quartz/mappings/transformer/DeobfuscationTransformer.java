@@ -199,6 +199,32 @@ public class DeobfuscationTransformer extends Remapper implements ClassTransform
             super.visit(version, access, name, signature, superName, interfaces);
         }
 
+        @Override
+        public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            if (this.cv != null) {
+                name = this.remapper.mapType(name);
+                this.cv.visitInnerClass(
+                        name,
+                        outerName == null ? null : this.remapper.mapType(outerName),
+                        getSimpleName(name),
+                        access
+                );
+            }
+        }
+
+    }
+
+    private static String getSimpleName(String name) {
+        int pos = name.lastIndexOf('$');
+        if (pos == -1) {
+            pos = name.lastIndexOf('/');
+        }
+
+        if (pos >= 0) {
+            return name.substring(pos + 1);
+        } else {
+            return name;
+        }
     }
 
 }
