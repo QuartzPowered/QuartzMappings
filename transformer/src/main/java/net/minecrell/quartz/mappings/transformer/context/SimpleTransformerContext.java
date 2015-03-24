@@ -81,7 +81,7 @@ public class SimpleTransformerContext implements TransformerContext {
         }
 
         String name = reader.getClassName();
-        String transformedName = this.renamer.unmap(name);
+        String transformedName = this.renamer.map(name);
         name = name.replace('/', '.');
         transformedName = transformedName.replace('/', '.');
 
