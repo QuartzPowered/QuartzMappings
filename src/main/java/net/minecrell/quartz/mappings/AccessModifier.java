@@ -28,7 +28,18 @@ import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
 public enum AccessModifier {
+    DEFAULT(Integer.MIN_VALUE) {
+        @Override
+        public boolean is(int access) {
+            return false;
+        }
 
+        @Override
+        public int transform(int access) {
+            return access;
+        }
+
+    },
     PRIVATE (ACC_PRIVATE),
     PACKAGE_LOCAL (0),
     PROTECTED (ACC_PROTECTED),

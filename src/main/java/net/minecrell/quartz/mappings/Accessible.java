@@ -35,4 +35,8 @@ import java.lang.annotation.Target;
 })
 public @interface Accessible {
 
+    AccessModifier access() default AccessModifier.PUBLIC;
+
+    boolean removeFinal() default false;
+
 }
