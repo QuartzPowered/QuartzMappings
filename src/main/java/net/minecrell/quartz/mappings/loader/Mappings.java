@@ -22,9 +22,6 @@
  */
 package net.minecrell.quartz.mappings.loader;
 
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableTable;
@@ -34,7 +31,6 @@ import com.google.gson.reflect.TypeToken;
 import net.minecrell.quartz.mappings.AccessTransform;
 import net.minecrell.quartz.mappings.MappedClass;
 import net.minecrell.quartz.mappings.mapper.Mapper;
-import net.minecrell.quartz.mappings.util.Methods;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.io.BufferedReader;
@@ -114,17 +110,9 @@ public final class Mappings {
             if (mapping.hasAccess()) {
                 fillTable(accessTransforms, className, mapping.getAccess());
             }
-
-            if (mapping.hasConstructors()) {
-                for (String constructor : mapping.getConstructors()) {
-                    MethodNode methodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC, "create", constructor, null, null);
-                    Methods.visitConstructor(methodNode, internalName);
-                    constructors.put(className, methodNode);
-                }
-            }
         }
 
-        return new Mapper(classes.build(), methods.build(), fields.build(), constructors.build(), accessTransforms.build());
+        return new Mapper(classes.build(), methods.build(), fields.build(), accessTransforms.build());
     }
 
     private static <R, C, V> void fillTable(ImmutableTable.Builder<R, C, V> builder, R row, Map<C, V> values) {

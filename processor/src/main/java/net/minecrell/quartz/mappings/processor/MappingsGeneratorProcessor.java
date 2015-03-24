@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableBiMap;
 import net.minecrell.quartz.mappings.AccessModifier;
 import net.minecrell.quartz.mappings.AccessTransform;
 import net.minecrell.quartz.mappings.Accessible;
-import net.minecrell.quartz.mappings.Constructor;
 import net.minecrell.quartz.mappings.MappedClass;
 import net.minecrell.quartz.mappings.Mapping;
 import net.minecrell.quartz.mappings.loader.Mappings;
@@ -57,7 +56,6 @@ import javax.annotation.processing.SupportedOptions;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -68,8 +66,7 @@ import javax.tools.StandardLocation;
 
 @SupportedAnnotationTypes({
         "net.minecrell.quartz.mappings.Accessible",
-        "net.minecrell.quartz.mappings.Mapping",
-        "net.minecrell.quartz.mappings.Constructor"
+        "net.minecrell.quartz.mappings.Mapping"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @SupportedOptions("baseJar")
@@ -130,32 +127,6 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
                 }
 
                 for (Element element : mappingClass.getEnclosedElements()) {
-                    Constructor constructor = element.getAnnotation(Constructor.class);
-                    if (constructor != null) {
-                        if (element.getKind() != ElementKind.METHOD) {
-                            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "@Constructor can be only used for methods", element);
-                            continue;
-                        }
-
-                        String name = element.getSimpleName().toString();
-                        if (!name.equals("create")) {
-                            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Constructor methods should be called \"create\"",
-                                    element);
-                            continue;
-                        }
-
-                        ExecutableElement creator = (ExecutableElement) element;
-
-                        if (!mappingClass.asType().equals(creator.getReturnType())) {
-                            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Constructor method should return instance of itself",
-                                    element);
-                            continue;
-                        }
-
-                        mapping.getConstructors().add(getDescriptor((ExecutableElement) element));
-                        continue;
-                    }
-
                     annotation = element.getAnnotation(Mapping.class);
                     if (annotation == null) {
                         continue;

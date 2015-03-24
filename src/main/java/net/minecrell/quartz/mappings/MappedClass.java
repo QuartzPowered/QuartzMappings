@@ -25,10 +25,8 @@ package net.minecrell.quartz.mappings;
 import static java.util.Objects.hash;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class MappedClass {
 
@@ -36,7 +34,6 @@ public class MappedClass {
     private Map<String, String> methods;
     private Map<String, String> fields;
     private Map<String, AccessTransform> access;
-    private Set<String> constructors;
 
     public MappedClass() {
         this(null);
@@ -46,13 +43,11 @@ public class MappedClass {
         this.name = name;
     }
 
-    public MappedClass(String name, Map<String, String> methods, Map<String, String> fields, Map<String, AccessTransform> access,
-            Set<String> constructors) {
+    public MappedClass(String name, Map<String, String> methods, Map<String, String> fields, Map<String, AccessTransform> access) {
         this(name);
         this.methods = methods;
         this.fields = fields;
         this.access = access;
-        this.constructors = constructors;
     }
 
     public String getName() {
@@ -95,18 +90,6 @@ public class MappedClass {
         return this.access;
     }
 
-    public boolean hasConstructors() {
-        return this.constructors != null && !this.constructors.isEmpty();
-    }
-
-    public Set<String> getConstructors() {
-        if (this.constructors == null) {
-            this.constructors = new HashSet<>();
-        }
-
-        return this.constructors;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -120,13 +103,12 @@ public class MappedClass {
         return Objects.equals(this.name, that.name)
                 && Objects.equals(this.methods, that.methods)
                 && Objects.equals(this.fields, that.fields)
-                && Objects.equals(this.access, that.access)
-                && Objects.equals(this.constructors, that.constructors);
+                && Objects.equals(this.access, that.access);
     }
 
     @Override
     public int hashCode() {
-        return hash(this.name, this.methods, this.fields, this.access, this.constructors);
+        return hash(this.name, this.methods, this.fields, this.access);
     }
 
     @Override
@@ -136,7 +118,6 @@ public class MappedClass {
                 .add("methods", this.methods)
                 .add("fields", this.fields)
                 .add("access", this.access)
-                .add("constructors", this.constructors)
                 .toString();
     }
 

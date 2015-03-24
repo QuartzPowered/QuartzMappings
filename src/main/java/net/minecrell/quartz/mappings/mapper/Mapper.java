@@ -27,26 +27,21 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableTable;
 import net.minecrell.quartz.mappings.AccessTransform;
-import org.objectweb.asm.tree.MethodNode;
 
 public class Mapper extends ClassMapper {
 
     protected final ImmutableTable<String, String, String> methods;
     protected final ImmutableTable<String, String, String> fields;
 
-    protected final ImmutableMultimap<String, MethodNode> constructors;
     protected final ImmutableTable<String, String, AccessTransform> accessTransforms;
 
     public Mapper(ImmutableBiMap<String, String> classes, ImmutableTable<String, String, String> methods,
-            ImmutableTable<String, String, String> fields, ImmutableMultimap<String, MethodNode> constructors,
-            ImmutableTable<String, String, AccessTransform> accessTransforms) {
+            ImmutableTable<String, String, String> fields, ImmutableTable<String, String, AccessTransform> accessTransforms) {
         super(classes);
         this.methods = requireNonNull(methods, "methods");
         this.fields = requireNonNull(fields, "fields");
-        this.constructors = requireNonNull(constructors, "constructors");
         this.accessTransforms = requireNonNull(accessTransforms, "accessTransforms");
     }
 
@@ -56,10 +51,6 @@ public class Mapper extends ClassMapper {
 
     public ImmutableTable<String, String, String> getFields() {
         return this.fields;
-    }
-
-    public ImmutableMultimap<String, MethodNode> getConstructors() {
-        return this.constructors;
     }
 
     public ImmutableTable<String, String, AccessTransform> getAccessTransforms() {
@@ -81,13 +72,12 @@ public class Mapper extends ClassMapper {
         Mapper that = (Mapper) o;
         return this.methods.equals(that.methods)
                 && this.fields.equals(that.fields)
-                && this.constructors.equals(that.constructors)
                 && this.accessTransforms.equals(that.accessTransforms);
     }
 
     @Override
     public int hashCode() {
-        return hash(super.hashCode(), this.methods, this.fields, this.constructors, this.accessTransforms);
+        return hash(super.hashCode(), this.methods, this.fields, this.accessTransforms);
     }
 
     @Override
@@ -96,7 +86,6 @@ public class Mapper extends ClassMapper {
                 .add("classes", super.classes)
                 .add("methods", this.methods)
                 .add("fields", this.fields)
-                .add("constructors", this.constructors)
                 .add("accessTransforms", this.accessTransforms)
                 .toString();
     }
