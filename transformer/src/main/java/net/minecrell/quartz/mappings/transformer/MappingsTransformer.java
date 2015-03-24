@@ -97,7 +97,7 @@ public final class MappingsTransformer {
     public static void deobfuscate(ZipFile zip, ZipOutputStream out, Mapper mapper) throws IOException {
         ClassProvider provider = getProvider(zip);
         DeobfuscationTransformer transformer = new DeobfuscationTransformer(mapper, provider);
-        transform(zip, out, createContext(provider, transformer, transformer));
+        transform(zip, out, createContext(provider, transformer, transformer, new AccessTransformer(mapper)));
     }
 
 }
