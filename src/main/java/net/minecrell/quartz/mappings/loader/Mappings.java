@@ -93,11 +93,7 @@ public final class Mappings {
 
             MappedClass mapping = entry.getValue();
             String mappedName = mapping.getName();
-            if (mappedName != null) {
-                classes.put(mappedName, internalName);
-            } else {
-                mappedName = entry.getKey();
-            }
+            classes.put(mappedName, internalName);
 
             if (mapping.hasMethods()) {
                 fillTable(methods, mappedName, mapping.getMethods());

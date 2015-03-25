@@ -23,6 +23,7 @@
 package net.minecrell.quartz.mappings;
 
 import static java.util.Objects.hash;
+import static java.util.Objects.requireNonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,12 +36,8 @@ public class MappedClass {
     private Map<String, String> fields;
     private Map<String, AccessTransform> access;
 
-    public MappedClass() {
-        this(null);
-    }
-
     public MappedClass(String name) {
-        this.name = name;
+        this.name = requireNonNull(name, "name");
     }
 
     public MappedClass(String name, Map<String, String> methods, Map<String, String> fields, Map<String, AccessTransform> access) {

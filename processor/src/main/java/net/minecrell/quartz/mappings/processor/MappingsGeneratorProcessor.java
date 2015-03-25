@@ -26,10 +26,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.minecrell.quartz.mappings.processor.util.Elements.getDescriptor;
 import static net.minecrell.quartz.mappings.processor.util.Elements.getInternalName;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableBiMap;
 import net.minecrell.quartz.mappings.AccessTransform;
 import net.minecrell.quartz.mappings.Accessible;
+import net.minecrell.quartz.mappings.Constructor;
 import net.minecrell.quartz.mappings.MappedClass;
 import net.minecrell.quartz.mappings.Mapping;
 import net.minecrell.quartz.mappings.loader.Mappings;
@@ -116,8 +116,15 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
             Remapper unmapper = classMappings.createUnmapper();
 
             for (TypeElement mappingClass : mappingClasses) {
+                String internalName = getInternalName(mappingClass);
+
                 Mapping annotation = mappingClass.getAnnotation(Mapping.class);
-                MappedClass mapping = new MappedClass(Strings.emptyToNull(annotation.value()));
+                String mappedName = annotation.value();
+                if (mappedName.isEmpty()) {
+                    mappedName = internalName;
+                }
+
+                MappedClass mapping = new MappedClass(mappedName);
 
                 Accessible accessible = mappingClass.getAnnotation(Accessible.class);
                 if (accessible != null) {
@@ -125,14 +132,24 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
                 }
 
                 for (Element element : mappingClass.getEnclosedElements()) {
+                    accessible = element.getAnnotation(Accessible.class);
+
+                    Constructor constructor = element.getAnnotation(Constructor.class);
+                    if (constructor != null) {
+                        if (accessible != null) {
+                            String constructorDesc = getDescriptor((ExecutableElement) element);
+
+                            mapping.getAccess().put("<init>" + constructorDesc, parseAccessible(accessible));
+                        }
+                        continue;
+                    }
+
                     annotation = element.getAnnotation(Mapping.class);
                     if (annotation == null) {
                         continue;
                     }
 
-                    accessible = element.getAnnotation(Accessible.class);
-
-                    String mappedName = annotation.value();
+                    mappedName = annotation.value();
                     checkArgument(!mappedName.isEmpty(), "Mapping detection is not supported yet");
 
                     switch (element.getKind()) {
@@ -162,7 +179,7 @@ public class MappingsGeneratorProcessor extends AbstractProcessor {
                     }
                 }
 
-                mappings.put(getInternalName(mappingClass), mapping);
+                mappings.put(internalName, mapping);
             }
 
             // Generate JSON output

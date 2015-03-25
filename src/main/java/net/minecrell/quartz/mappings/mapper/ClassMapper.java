@@ -36,6 +36,10 @@ public class ClassMapper {
         this.classes = requireNonNull(classes, "classes");
     }
 
+    public ImmutableBiMap<String, String> getClasses() {
+        return this.classes;
+    }
+
     public String map(String className) {
         if (className == null) return null;
 
